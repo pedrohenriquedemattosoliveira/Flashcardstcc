@@ -37,28 +37,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['acao'])) {
     }
 }
 
-// MODIFICADO: Substituir consultas SQL diretas pelos métodos das classes
+// Obter cartões para estudo
 $limite = 20; // Limitar quantidade de cartões por sessão
-
-if ($baralho_id) {
-    // Obter todos os cartões do baralho específico
-    $cartoes = $sistema['cartao']->listar($baralho_id);
-    // Limitar a quantidade de cartões
-    $cartoes = array_slice($cartoes, 0, $limite);
-} else {
-    // Obter cartões de todos os baralhos do usuário
-    $cartoes = [];
-    $baralhos_usuario = $sistema['baralho']->listar($usuario_id);
-    foreach ($baralhos_usuario as $b) {
-        $cartoes_baralho = $sistema['cartao']->listar($b['id']);
-        $cartoes = array_merge($cartoes, $cartoes_baralho);
-        // Parar quando atingir o limite
-        if (count($cartoes) >= $limite) {
-            $cartoes = array_slice($cartoes, 0, $limite);
-            break;
-        }
-    }
-}
+$cartoes = $sistema['cartao']->obterParaEstudar($usuario_id, $baralho_id, $limite);
 
 // Obter todos os baralhos do usuário para o menu de seleção
 $baralhos = $sistema['baralho']->listar($usuario_id);
@@ -67,7 +48,7 @@ $baralhos = $sistema['baralho']->listar($usuario_id);
 $tem_cartoes = !empty($cartoes);
 $cartao_atual = $tem_cartoes ? $cartoes[0] : null;
 
-// Total de cartões em cada baralho (já vem calculado do método listar() da classe Baralho)
+// Contar total de cartões para revisão
 $total_para_revisar = 0;
 foreach ($baralhos as $b) {
     $total_para_revisar += $b['cartoes_para_revisar'];
@@ -329,12 +310,12 @@ foreach ($baralhos as $b) {
 
         <?php else: ?>
             <div class="alert alert-info">
-                <p>Você não tem cartões cadastrados!</p>
+                <p>Você não tem cartões para revisar no momento!</p>
                 <?php if ($modo_estudo === 'baralho'): ?>
-                    <p>Este baralho não possui cartões. Adicione alguns cartões para começar a estudar.</p>
+                    <p>Todos os cartões deste baralho já foram revisados por hoje.</p>
                     <p><a href="baralho.php?id=<?php echo $baralho_id; ?>" class="btn btn-primary">Voltar para o Baralho</a></p>
                 <?php else: ?>
-                    <p>Crie baralhos e adicione cartões para começar seus estudos.</p>
+                    <p>Seus cartões já foram todos revisados por hoje. Volte amanhã para continuar seus estudos ou crie novos cartões.</p>
                     <p><a href="index.php" class="btn btn-primary">Voltar para Meus Baralhos</a></p>
                 <?php endif; ?>
             </div>
