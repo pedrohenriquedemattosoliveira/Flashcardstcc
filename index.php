@@ -132,7 +132,7 @@ foreach ($baralhos as $baralho) {
                                 <i class="fas fa-check"></i> Em dia
                             </button>
                             <?php endif; ?>
-                            <a href="gerenciar_baralho.php?id=<?php echo $baralho['id']; ?>" class="btn btn-primary btn-sm">
+                            <a href="editar_baralho.php?id=<?php echo $baralho['id']; ?>" class="btn btn-primary btn-sm">
                                 <i class="fas fa-cog"></i> Gerenciar
                             </a>
                         </div>
