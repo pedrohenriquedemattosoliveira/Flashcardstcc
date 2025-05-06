@@ -2,10 +2,27 @@
 require_once 'config.php';
 
 // Verificar se o usuário está logado
-$usuario_id = verificarLogin();
+if (session_status() == PHP_SESSION_NONE) {
+    session_start();
+}
+
+// Verifica se o usuário está logado
+if (!isset($_SESSION['usuario_id'])) {
+    header('Location: login.php');
+    exit;
+}
+
+$usuario_id = $_SESSION['usuario_id'];
 
 // Inicializar o sistema
-$sistema = inicializarSistema();
+$db = new Database($config);
+$conn = $db->getConnection();
+
+// Inicializa os objetos
+$baralho = new Baralho($conn);
+$cartao = new Cartao($conn);
+$repetidor = new RepetidorEspacado($conn);
+$tag = new Tag($conn);
 
 // Determinar o modo de estudo
 $baralho_id = isset($_GET['baralho']) && is_numeric($_GET['baralho']) ? (int)$_GET['baralho'] : null;
@@ -13,22 +30,24 @@ $modo_estudo = 'todos'; // Padrão é estudar todos os cartões
 
 // Se um baralho específico foi solicitado, verificar se pertence ao usuário
 if ($baralho_id) {
-    $baralho = $sistema['baralho']->obter($baralho_id);
-    if (!$baralho || !$sistema['baralho']->verificarProprietario($baralho_id, $usuario_id)) {
+    $deck = $baralho->obter($baralho_id);
+    if (!$deck || !$baralho->verificarProprietario($baralho_id, $usuario_id)) {
         header('Location: index.php');
         exit;
     }
     $modo_estudo = 'baralho';
 }
 
-// Processar resposta ao cartão
+// Mensagem para feedback ao usuário
 $mensagem = '';
+
+// Processar resposta ao cartão
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['acao'])) {
     if ($_POST['acao'] === 'responder' && isset($_POST['cartao_id']) && isset($_POST['qualidade'])) {
         $cartao_id = (int)$_POST['cartao_id'];
         $qualidade = (int)$_POST['qualidade'];
         
-        $resultado = $sistema['repetidor']->processarResposta($cartao_id, $qualidade);
+        $resultado = $repetidor->processarResposta($cartao_id, $qualidade);
         if ($resultado['sucesso']) {
             $mensagem = exibirAlerta('success', 'Resposta registrada! Próxima revisão em ' . $resultado['proximo_intervalo'] . ' dia(s).');
         } else {
@@ -37,40 +56,57 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['acao'])) {
     }
 }
 
-// MODIFICADO: Substituir consultas SQL diretas pelos métodos das classes
+// Obter cartões para estudar
 $limite = 20; // Limitar quantidade de cartões por sessão
 
 if ($baralho_id) {
-    // Obter todos os cartões do baralho específico
-    $cartoes = $sistema['cartao']->listar($baralho_id);
-    // Limitar a quantidade de cartões
-    $cartoes = array_slice($cartoes, 0, $limite);
+    // Obter cartões do baralho específico
+    $stmt = $conn->prepare("
+        SELECT c.*, e.facilidade, e.intervalo, e.repeticoes, e.proxima_revisao, e.ultima_revisao 
+        FROM cartoes c 
+        JOIN estatisticas e ON c.id = e.cartao_id 
+        WHERE c.baralho_id = ? 
+        ORDER BY c.id DESC 
+        LIMIT $limite
+    ");
+    $stmt->execute([$baralho_id]);
+    $cartoes = $stmt->fetchAll(PDO::FETCH_ASSOC);
 } else {
     // Obter cartões de todos os baralhos do usuário
-    $cartoes = [];
-    $baralhos_usuario = $sistema['baralho']->listar($usuario_id);
-    foreach ($baralhos_usuario as $b) {
-        $cartoes_baralho = $sistema['cartao']->listar($b['id']);
-        $cartoes = array_merge($cartoes, $cartoes_baralho);
-        // Parar quando atingir o limite
-        if (count($cartoes) >= $limite) {
-            $cartoes = array_slice($cartoes, 0, $limite);
-            break;
-        }
-    }
+    $stmt = $conn->prepare("
+        SELECT c.*, e.facilidade, e.intervalo, e.repeticoes, e.proxima_revisao, e.ultima_revisao 
+        FROM cartoes c 
+        JOIN estatisticas e ON c.id = e.cartao_id 
+        JOIN baralhos b ON c.baralho_id = b.id 
+        WHERE b.usuario_id = ? 
+        ORDER BY c.id DESC 
+        LIMIT $limite
+    ");
+    $stmt->execute([$usuario_id]);
+    $cartoes = $stmt->fetchAll(PDO::FETCH_ASSOC);
 }
 
 // Obter todos os baralhos do usuário para o menu de seleção
-$baralhos = $sistema['baralho']->listar($usuario_id);
+$baralhos = $baralho->listar($usuario_id);
 
 // Verificar se existem cartões para estudar
 $tem_cartoes = !empty($cartoes);
 $cartao_atual = $tem_cartoes ? $cartoes[0] : null;
 
-// Total de cartões em cada baralho (já vem calculado do método listar() da classe Baralho)
+// Contar cartões para revisar em cada baralho
+foreach ($baralhos as &$b) {
+    $b['cartoes_para_revisar'] = $b['total_cartoes'];
+}
+
 $total_para_revisar = 0;
 foreach ($baralhos as $b) {
     $total_para_revisar += $b['cartoes_para_revisar'];
+}
+
+// Título da página
+$titulo = "Estudar";
+if ($baralho_id && isset($deck)) {
+    $titulo .= " - " . htmlspecialchars($deck['nome']);
 }
 ?>
 
@@ -79,7 +115,7 @@ foreach ($baralhos as $b) {
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Estudar Flashcards - Sistema de Flashcards</title>
+    <title><?php echo $titulo; ?> - Sistema de Flashcards</title>
     <!-- Bootstrap CSS -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
     <!-- Font Awesome -->
@@ -205,7 +241,7 @@ foreach ($baralhos as $b) {
 
         <div class="row mb-4">
             <div class="col-md-8">
-                <h1>Estudar <?php echo $modo_estudo === 'baralho' ? htmlspecialchars($baralho['nome']) : 'Todos os Baralhos'; ?></h1>
+                <h1><?php echo $titulo; ?></h1>
             </div>
             <div class="col-md-4">
                 <div class="input-group">
@@ -215,7 +251,7 @@ foreach ($baralhos as $b) {
                         <?php foreach ($baralhos as $b): ?>
                             <option value="<?php echo $b['id']; ?>" <?php echo $baralho_id == $b['id'] ? 'selected' : ''; ?>>
                                 <?php echo htmlspecialchars($b['nome']); ?> 
-                                (<?php echo $b['cartoes_para_revisar']; ?> para revisar)
+                                (<?php echo $b['total_cartoes']; ?> cartões)
                             </option>
                         <?php endforeach; ?>
                     </select>
@@ -261,10 +297,12 @@ foreach ($baralhos as $b) {
                                 </div>
                                 <div class="card-tags">
                                     <?php
-                                    $tags = $sistema['tag']->listarPorCartao($cartao_atual['id']);
-                                    foreach ($tags as $tag): ?>
-                                        <span class="badge bg-secondary tag-badge"><?php echo htmlspecialchars($tag['nome']); ?></span>
-                                    <?php endforeach; ?>
+                                    $tags = $tag->listarPorCartao($cartao_atual['id']);
+                                    if ($tags):
+                                        foreach ($tags as $t): ?>
+                                            <span class="badge bg-secondary tag-badge"><?php echo htmlspecialchars($t['nome']); ?></span>
+                                        <?php endforeach;
+                                    endif; ?>
                                 </div>
                             </div>
                             <div class="card-back">
@@ -329,7 +367,7 @@ foreach ($baralhos as $b) {
 
         <?php else: ?>
             <div class="alert alert-info">
-                <p>Você não tem cartões cadastrados!</p>
+                <p>Não há cartões para estudar neste momento.</p>
                 <?php if ($modo_estudo === 'baralho'): ?>
                     <p>Este baralho não possui cartões. Adicione alguns cartões para começar a estudar.</p>
                     <p><a href="baralho.php?id=<?php echo $baralho_id; ?>" class="btn btn-primary">Voltar para o Baralho</a></p>

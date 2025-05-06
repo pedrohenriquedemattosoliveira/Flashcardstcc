@@ -29,6 +29,8 @@ class Database {
     }
 }
 
+
+
 // Classe para gerenciar usuários
 class Usuario {
     private $db;
@@ -192,7 +194,7 @@ class Baralho {
 
 // Classe para gerenciar cartões (flashcards)
 class Cartao {
-    private $db;
+    public $db;
     
     public function __construct($db) {
         $this->db = $db;
@@ -278,30 +280,31 @@ class Cartao {
     
     public function obterParaEstudar($usuario_id, $baralho_id = null, $limite = 20) {
         try {
-            $hoje = date('Y-m-d');
+            // Removida a verificação de data
+            // $hoje = date('Y-m-d');
             
             if ($baralho_id) {
                 $sql = "SELECT c.*, e.facilidade, e.intervalo, e.repeticoes, e.proxima_revisao, e.ultima_revisao 
                         FROM cartoes c 
                         JOIN estatisticas e ON c.id = e.cartao_id 
                         JOIN baralhos b ON c.baralho_id = b.id 
-                        WHERE b.id = ? AND b.usuario_id = ? AND e.proxima_revisao <= ? 
+                        WHERE b.id = ? AND b.usuario_id = ? 
                         ORDER BY e.proxima_revisao ASC 
                         LIMIT ?";
                         
                 $stmt = $this->db->prepare($sql);
-                $stmt->execute([$baralho_id, $usuario_id, $hoje, $limite]);
+                $stmt->execute([$baralho_id, $usuario_id, $limite]);
             } else {
                 $sql = "SELECT c.*, e.facilidade, e.intervalo, e.repeticoes, e.proxima_revisao, e.ultima_revisao 
                         FROM cartoes c 
                         JOIN estatisticas e ON c.id = e.cartao_id 
                         JOIN baralhos b ON c.baralho_id = b.id 
-                        WHERE b.usuario_id = ? AND e.proxima_revisao <= ? 
+                        WHERE b.usuario_id = ? 
                         ORDER BY e.proxima_revisao ASC 
                         LIMIT ?";
                         
                 $stmt = $this->db->prepare($sql);
-                $stmt->execute([$usuario_id, $hoje, $limite]);
+                $stmt->execute([$usuario_id, $limite]);
             }
             
             return $stmt->fetchAll(PDO::FETCH_ASSOC);
@@ -467,15 +470,25 @@ class Tag {
         }
     }
     
-    public function listar() {
-        try {
-            $stmt = $this->db->prepare("SELECT * FROM tags ORDER BY nome");
-            $stmt->execute();
-            return $stmt->fetchAll(PDO::FETCH_ASSOC);
-        } catch (Exception $e) {
-            return [];
-        }
+   
+public function listar($usuario_id) {
+    try {
+        $stmt = $this->db->prepare("
+            SELECT b.*, 
+                (SELECT COUNT(*) FROM cartoes WHERE baralho_id = b.id) AS total_cartoes,
+                (SELECT COUNT(*) FROM cartoes c 
+                 JOIN estatisticas e ON c.id = e.cartao_id 
+                 WHERE c.baralho_id = b.id) AS cartoes_para_revisar
+            FROM baralhos b 
+            WHERE b.usuario_id = ? 
+            ORDER BY b.data_criacao DESC
+        ");
+        $stmt->execute([$usuario_id]);
+        return $stmt->fetchAll(PDO::FETCH_ASSOC);
+    } catch (PDOException $e) {
+        return [];
     }
+}
     
     public function listarPorCartao($cartao_id) {
         try {
