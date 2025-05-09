@@ -24,6 +24,22 @@ $cartao = new Cartao($conn);
 $repetidor = new RepetidorEspacado($conn);
 $tag = new Tag($conn);
 
+// Processar resposta AJAX
+if (isset($_POST['ajax']) && $_POST['ajax'] == 'true') {
+    if (isset($_POST['acao']) && $_POST['acao'] === 'responder' && isset($_POST['cartao_id']) && isset($_POST['qualidade'])) {
+        $cartao_id = (int)$_POST['cartao_id'];
+        $qualidade = (int)$_POST['qualidade'];
+        
+        $resultado = $repetidor->processarResposta($cartao_id, $qualidade);
+        
+        // Retornar resultado como JSON
+        header('Content-Type: application/json');
+        echo json_encode($resultado);
+        exit;
+    }
+    exit;
+}
+
 // Determinar o modo de estudo
 $baralho_id = isset($_GET['baralho']) && is_numeric($_GET['baralho']) ? (int)$_GET['baralho'] : null;
 $modo_estudo = 'todos'; // Padrão é estudar todos os cartões
@@ -41,21 +57,6 @@ if ($baralho_id) {
 // Mensagem para feedback ao usuário
 $mensagem = '';
 
-// Processar resposta ao cartão
-if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['acao'])) {
-    if ($_POST['acao'] === 'responder' && isset($_POST['cartao_id']) && isset($_POST['qualidade'])) {
-        $cartao_id = (int)$_POST['cartao_id'];
-        $qualidade = (int)$_POST['qualidade'];
-        
-        $resultado = $repetidor->processarResposta($cartao_id, $qualidade);
-        if ($resultado['sucesso']) {
-            $mensagem = exibirAlerta('success', 'Resposta registrada! Próxima revisão em ' . $resultado['proximo_intervalo'] . ' dia(s).');
-        } else {
-            $mensagem = exibirAlerta('danger', $resultado['mensagem']);
-        }
-    }
-}
-
 // Obter cartões para estudar
 $limite = 20; // Limitar quantidade de cartões por sessão
 
@@ -66,7 +67,7 @@ if ($baralho_id) {
         FROM cartoes c 
         JOIN estatisticas e ON c.id = e.cartao_id 
         WHERE c.baralho_id = ? 
-        ORDER BY c.id DESC 
+        ORDER BY e.proxima_revisao ASC 
         LIMIT $limite
     ");
     $stmt->execute([$baralho_id]);
@@ -79,7 +80,7 @@ if ($baralho_id) {
         JOIN estatisticas e ON c.id = e.cartao_id 
         JOIN baralhos b ON c.baralho_id = b.id 
         WHERE b.usuario_id = ? 
-        ORDER BY c.id DESC 
+        ORDER BY e.proxima_revisao ASC 
         LIMIT $limite
     ");
     $stmt->execute([$usuario_id]);
@@ -107,6 +108,12 @@ foreach ($baralhos as $b) {
 $titulo = "Estudar";
 if ($baralho_id && isset($deck)) {
     $titulo .= " - " . htmlspecialchars($deck['nome']);
+}
+
+// Buscar nomes dos baralhos para os cartões
+$baralhos_nomes = [];
+foreach ($baralhos as $b) {
+    $baralhos_nomes[$b['id']] = $b['nome'];
 }
 ?>
 
@@ -198,6 +205,34 @@ if ($baralho_id && isset($deck)) {
         .btn-difficulty-3 { background-color: #20c997; }
         .btn-difficulty-4 { background-color: #0dcaf0; }
         .btn-difficulty-5 { background-color: #198754; }
+        
+        /* Estilos para a animação de feedback */
+        .feedback-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0,0,0,0.4);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 9999;
+            opacity: 0;
+            visibility: hidden;
+            transition: opacity 0.3s, visibility 0.3s;
+        }
+        .feedback-overlay.show {
+            opacity: 1;
+            visibility: visible;
+        }
+        .feedback-message {
+            background-color: white;
+            padding: 20px 40px;
+            border-radius: 8px;
+            font-size: 1.5rem;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+        }
     </style>
 </head>
 <body>
@@ -237,7 +272,7 @@ if ($baralho_id && isset($deck)) {
     </nav>
 
     <div class="container mt-4">
-        <?php echo $mensagem; ?>
+        <div id="feedback-alert" class="alert" style="display: none;" role="alert"></div>
 
         <div class="row mb-4">
             <div class="col-md-8">
@@ -275,94 +310,98 @@ if ($baralho_id && isset($deck)) {
                 </div>
             </div>
 
-            <div class="row">
-                <div class="col-12">
-                    <div class="study-card">
-                        <div class="flashcard" id="flashcard-atual" onclick="virarCartao()">
-                            <div class="card-front">
-                                <div class="card-content" id="card-frente">
-                                    <?php echo nl2br(htmlspecialchars($cartao_atual['frente'])); ?>
+            <div id="area-estudo">
+                <div class="row">
+                    <div class="col-12">
+                        <div class="study-card">
+                            <div class="flashcard" id="flashcard-atual" onclick="virarCartao()">
+                                <div class="card-front">
+                                    <div class="card-content" id="card-frente">
+                                        <?php echo nl2br(htmlspecialchars($cartao_atual['frente'])); ?>
+                                    </div>
+                                    <div class="card-info">
+                                        Baralho: <?php 
+                                            echo isset($baralhos_nomes[$cartao_atual['baralho_id']]) 
+                                                ? htmlspecialchars($baralhos_nomes[$cartao_atual['baralho_id']]) 
+                                                : 'Desconhecido';
+                                        ?>
+                                    </div>
+                                    <div class="card-tags" id="card-tags-frente">
+                                        <?php
+                                        $tags = $tag->listarPorCartao($cartao_atual['id']);
+                                        if ($tags):
+                                            foreach ($tags as $t): ?>
+                                                <span class="badge bg-secondary tag-badge"><?php echo htmlspecialchars($t['nome']); ?></span>
+                                            <?php endforeach;
+                                        endif; ?>
+                                    </div>
                                 </div>
-                                <div class="card-info">
-                                    Baralho: <?php 
-                                        $nome_baralho = '';
-                                        foreach ($baralhos as $b) {
-                                            if ($b['id'] == $cartao_atual['baralho_id']) {
-                                                $nome_baralho = $b['nome'];
-                                                break;
-                                            }
-                                        }
-                                        echo htmlspecialchars($nome_baralho);
-                                    ?>
-                                </div>
-                                <div class="card-tags">
-                                    <?php
-                                    $tags = $tag->listarPorCartao($cartao_atual['id']);
-                                    if ($tags):
-                                        foreach ($tags as $t): ?>
-                                            <span class="badge bg-secondary tag-badge"><?php echo htmlspecialchars($t['nome']); ?></span>
-                                        <?php endforeach;
-                                    endif; ?>
-                                </div>
-                            </div>
-                            <div class="card-back">
-                                <div class="card-content" id="card-verso">
-                                    <?php echo nl2br(htmlspecialchars($cartao_atual['verso'])); ?>
+                                <div class="card-back">
+                                    <div class="card-content" id="card-verso">
+                                        <?php echo nl2br(htmlspecialchars($cartao_atual['verso'])); ?>
+                                    </div>
+                                    <div class="card-tags" id="card-tags-verso">
+                                        <?php
+                                        if ($tags):
+                                            foreach ($tags as $t): ?>
+                                                <span class="badge bg-secondary tag-badge"><?php echo htmlspecialchars($t['nome']); ?></span>
+                                            <?php endforeach;
+                                        endif; ?>
+                                    </div>
                                 </div>
                             </div>
                         </div>
-                    </div>
 
-                    <div class="d-flex justify-content-center mb-4">
-                        <button class="btn btn-outline-secondary" onclick="virarCartao()">
-                            <i class="fas fa-sync-alt"></i> Virar Cartão
-                        </button>
-                    </div>
+                        <div class="d-flex justify-content-center mb-4">
+                            <button class="btn btn-outline-secondary" onclick="virarCartao()">
+                                <i class="fas fa-sync-alt"></i> Virar Cartão
+                            </button>
+                        </div>
 
-                    <div class="difficulty-buttons" id="dificuldade-botoes">
-                        <h5 class="text-center mb-3">Como foi sua lembrança?</h5>
-                        <div class="d-flex justify-content-between">
-                            <button class="btn text-white btn-difficulty-0" onclick="responderCartao(0)">
-                                Não lembrei<br>
-                                <small>Resetar cartão</small>
-                            </button>
-                            <button class="btn text-white btn-difficulty-1" onclick="responderCartao(1)">
-                                Difícil<br>
-                                <small>Revisar logo</small>
-                            </button>
-                            <button class="btn text-white btn-difficulty-2" onclick="responderCartao(2)">
-                                Hesitei<br>
-                                <small>Intervalo curto</small>
-                            </button>
-                            <button class="btn text-white btn-difficulty-3" onclick="responderCartao(3)">
-                                Bom<br>
-                                <small>Intervalo normal</small>
-                            </button>
-                            <button class="btn text-white btn-difficulty-4" onclick="responderCartao(4)">
-                                Fácil<br>
-                                <small>Intervalo longo</small>
-                            </button>
-                            <button class="btn text-white btn-difficulty-5" onclick="responderCartao(5)">
-                                Perfeito<br>
-                                <small>Intervalo muito longo</small>
-                            </button>
+                        <div class="difficulty-buttons" id="dificuldade-botoes">
+                            <h5 class="text-center mb-3">Como foi sua lembrança?</h5>
+                            <div class="d-flex justify-content-between">
+                                <button class="btn text-white btn-difficulty-0" onclick="responderCartao(0)">
+                                    Não lembrei<br>
+                                    <small>Resetar cartão</small>
+                                </button>
+                                <button class="btn text-white btn-difficulty-1" onclick="responderCartao(1)">
+                                    Difícil<br>
+                                    <small>Revisar logo</small>
+                                </button>
+                                <button class="btn text-white btn-difficulty-2" onclick="responderCartao(2)">
+                                    Hesitei<br>
+                                    <small>Intervalo curto</small>
+                                </button>
+                                <button class="btn text-white btn-difficulty-3" onclick="responderCartao(3)">
+                                    Bom<br>
+                                    <small>Intervalo normal</small>
+                                </button>
+                                <button class="btn text-white btn-difficulty-4" onclick="responderCartao(4)">
+                                    Fácil<br>
+                                    <small>Intervalo longo</small>
+                                </button>
+                                <button class="btn text-white btn-difficulty-5" onclick="responderCartao(5)">
+                                    Perfeito<br>
+                                    <small>Intervalo muito longo</small>
+                                </button>
+                            </div>
                         </div>
                     </div>
                 </div>
             </div>
 
-            <!-- Formulário para enviar resposta -->
-            <form id="form-resposta" method="post" style="display: none;">
-                <input type="hidden" name="acao" value="responder">
-                <input type="hidden" name="cartao_id" id="cartao_id" value="<?php echo $cartao_atual['id']; ?>">
-                <input type="hidden" name="qualidade" id="qualidade" value="">
-            </form>
+            <div id="feedback-overlay" class="feedback-overlay">
+                <div class="feedback-message" id="feedback-message"></div>
+            </div>
 
             <!-- JSON de dados dos cartões -->
             <script>
                 const cartoes = <?php echo json_encode($cartoes); ?>;
+                const baralhos_nomes = <?php echo json_encode($baralhos_nomes); ?>;
                 let cartaoAtual = 0;
                 let totalCartoes = cartoes.length;
+                let estudoCompleto = false;
             </script>
 
         <?php else: ?>
@@ -410,6 +449,9 @@ if ($baralho_id && isset($deck)) {
     <!-- Bootstrap JS -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
     <script>
+        // Variáveis globais
+        let cartaoRespondido = false;
+        
         // Função para virar o cartão
         function virarCartao() {
             const flashcard = document.getElementById('flashcard-atual');
@@ -424,24 +466,87 @@ if ($baralho_id && isset($deck)) {
             }
         }
         
-        // Função para processar a resposta do usuário
+        // Função para exibir mensagem de feedback
+        function mostrarFeedback(mensagem, tempo = 1500) {
+            const overlay = document.getElementById('feedback-overlay');
+            const textoFeedback = document.getElementById('feedback-message');
+            
+            textoFeedback.textContent = mensagem;
+            overlay.classList.add('show');
+            
+            setTimeout(() => {
+                overlay.classList.remove('show');
+            }, tempo);
+        }
+        
+        // Função para processar a resposta do usuário via AJAX
         function responderCartao(qualidade) {
-            // Se for o último cartão, mostrar modal de conclusão após o processamento
-            if (cartaoAtual === totalCartoes - 1) {
-                document.getElementById('qualidade').value = qualidade;
-                document.getElementById('form-resposta').submit();
-                return;
-            }
+            // Evitar processamento duplo
+            if (cartaoRespondido) return;
+            cartaoRespondido = true;
             
-            // Atualizar formulário e enviar
-            document.getElementById('qualidade').value = qualidade;
+            const cartao_id = cartoes[cartaoAtual].id;
             
+            // Mostrar feedback
+            mostrarFeedback('Processando...');
+            
+            // Enviar resposta via AJAX
+            const formData = new FormData();
+            formData.append('ajax', 'true');
+            formData.append('acao', 'responder');
+            formData.append('cartao_id', cartao_id);
+            formData.append('qualidade', qualidade);
+            
+            fetch('estudar.php', {
+                method: 'POST',
+                body: formData
+            })
+            .then(response => response.json())
+            .then(data => {
+                // Feedback do resultado
+                if (data.sucesso) {
+                    mostrarFeedback(`Próxima revisão em ${data.proximo_intervalo} dia(s)`);
+                } else {
+                    mostrarFeedback('Erro ao processar resposta');
+                }
+                
+                // Verificar se é o último cartão
+                if (cartaoAtual === totalCartoes - 1) {
+                    // Exibir modal de conclusão após o feedback
+                    setTimeout(() => {
+                        const modalConcluido = new bootstrap.Modal(document.getElementById('modalConcluido'));
+                        modalConcluido.show();
+                        estudoCompleto = true;
+                    }, 1500);
+                } else {
+                    // Avançar para o próximo cartão
+                    setTimeout(() => {
+                        avancarProximoCartao();
+                    }, 1500);
+                }
+            })
+            .catch(error => {
+                console.error('Erro:', error);
+                mostrarFeedback('Erro ao processar resposta');
+                cartaoRespondido = false;
+            });
+        }
+        
+        // Função para avançar para o próximo cartão
+        function avancarProximoCartao() {
             // Avançar para o próximo cartão
             cartaoAtual++;
+            cartaoRespondido = false;
+            
             const proximoCartao = cartoes[cartaoAtual];
             
-            // Atualizar o ID do cartão no formulário
-            document.getElementById('cartao_id').value = proximoCartao.id;
+            // Resetar o estado do cartão (não mostrar resposta)
+            const flashcard = document.getElementById('flashcard-atual');
+            flashcard.classList.remove('flipped');
+            
+            // Esconder botões de dificuldade
+            const dificuldadeBotoes = document.getElementById('dificuldade-botoes');
+            dificuldadeBotoes.classList.remove('visible');
             
             // Atualizar o progresso
             const progressoTexto = document.getElementById('progresso-texto');
@@ -453,32 +558,40 @@ if ($baralho_id && isset($deck)) {
             progressoBarra.setAttribute('aria-valuenow', cartaoAtual + 1);
             
             // Atualizar conteúdo do cartão
-            const cardFrente = document.getElementById('card-frente');
-            const cardVerso = document.getElementById('card-verso');
+            document.getElementById('card-frente').innerHTML = proximoCartao.frente.replace(/\n/g, '<br>');
+            document.getElementById('card-verso').innerHTML = proximoCartao.verso.replace(/\n/g, '<br>');
             
-            // Resetar a virada do cartão
-            const flashcard = document.getElementById('flashcard-atual');
-            flashcard.classList.remove('flipped');
+            // Atualizar informações do baralho
+            const baralhoNome = baralhos_nomes[proximoCartao.baralho_id] || 'Desconhecido';
+            document.querySelector('.card-info').textContent = `Baralho: ${baralhoNome}`;
             
-            // Esconder botões de dificuldade
-            const dificuldadeBotoes = document.getElementById('dificuldade-botoes');
-            dificuldadeBotoes.classList.remove('visible');
-            
-            // Atualizar conteúdo
-            cardFrente.innerHTML = proximoCartao.frente.replace(/\n/g, '<br>');
-            cardVerso.innerHTML = proximoCartao.verso.replace(/\n/g, '<br>');
-            
-            // Enviar resposta para processamento no servidor
-            document.getElementById('form-resposta').submit();
+            // Buscar e atualizar tags (opcional, pode ser implementado mais tarde)
+            // Isso requereria uma chamada AJAX adicional para buscar as tags do novo cartão
         }
-        
-        // Verificar se todos os cartões foram estudados
-        document.addEventListener('DOMContentLoaded', function() {
-            <?php if ($tem_cartoes && isset($_POST['acao']) && $_POST['acao'] === 'responder' && end($cartoes)['id'] == $_POST['cartao_id']): ?>
-                const modalConcluido = new bootstrap.Modal(document.getElementById('modalConcluido'));
-                modalConcluido.show();
-            <?php endif; ?>
-        });
     </script>
+
+    <?php if ($tem_cartoes): ?>
+        <script>
+            // Estabelecer atalhos de teclado
+            document.addEventListener('keydown', function(e) {
+                // Evitar processamento se o estudo estiver completo
+                if (estudoCompleto) return;
+                
+                const flashcard = document.getElementById('flashcard-atual');
+                const virado = flashcard.classList.contains('flipped');
+                
+                // Barra de espaço para virar o cartão
+                if (e.key === ' ' || e.code === 'Space') {
+                    e.preventDefault();
+                    virarCartao();
+                }
+                
+                // Teclas numéricas de 0 a 5 para classificar quando o cartão estiver virado
+                if (virado && !cartaoRespondido && e.key >= '0' && e.key <= '5') {
+                    responderCartao(parseInt(e.key));
+                }
+            });
+        </script>
+    <?php endif; ?>
 </body>
 </html>

@@ -4,6 +4,7 @@ require_once 'config.php';
 // Verificar se o usuário está logado
 $usuario_id = verificarLogin();
 $sistema = inicializarSistema();
+verificarTemaEscuro();
 
 // Processar exclusão de baralho
 $mensagem = '';

@@ -4,6 +4,7 @@ require_once 'config.php';
 // Verificar se o usuário está logado
 $usuario_id = verificarLogin();
 $sistema = inicializarSistema();
+verificarTemaEscuro();
 
 // Verificar se o ID do baralho foi passado
 if (!isset($_GET['id']) || empty($_GET['id'])) {

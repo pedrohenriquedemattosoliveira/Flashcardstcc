@@ -548,4 +548,28 @@ function inicializarSistema() {
         'tag' => new Tag($conn)
     ];
 }
+
+// Adicione esta função ao final do arquivo config.php
+
+function verificarTemaEscuro() {
+    if (session_status() === PHP_SESSION_NONE) {
+        session_start();
+    }
+    
+    // Definir tema escuro como falso por padrão se não estiver configurado
+    if (!isset($_SESSION['tema_escuro'])) {
+        $_SESSION['tema_escuro'] = false;
+    }
+    
+    // Retornar o valor atual do tema
+    return $_SESSION['tema_escuro'];
+}
+
+// Função para obter o atributo de tema escuro para o HTML
+function obterAtributoTemaEscuro() {
+    $tema_escuro = verificarTemaEscuro();
+    return $tema_escuro ? 'data-bs-theme="dark"' : '';
+}
+
+
 ?>

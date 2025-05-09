@@ -7,6 +7,8 @@ $usuario_id = verificarLogin();
 // Inicializar o sistema
 $sistema = inicializarSistema();
 
+verificarTemaEscuro();
+
 // Obter os baralhos do usuário
 $baralhos = $sistema['baralho']->listar($usuario_id);
 
@@ -20,10 +22,15 @@ foreach ($baralhos as $baralho) {
     $cartoes_para_revisar += $baralho['cartoes_para_revisar'];
 }
 ?>
-<!DOCTYPE html>
-<html lang="pt-BR">
+<html lang="pt-br" <?php echo obterAtributoTemaEscuro(); ?>>
 <head>
     <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sistema de Flashcards - <?php echo $titulo; ?></title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css" rel="stylesheet">
+
+    
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Sistema de Flashcards</title>
     <!-- Bootstrap CSS -->

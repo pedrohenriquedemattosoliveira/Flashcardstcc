@@ -9,6 +9,11 @@ $usuario_id = verificarLogin();
 $sistema = inicializarSistema();
 $usuario = $sistema['usuario'];
 
+
+
+
+
+
 // Processar formulário de atualização de perfil
 $mensagem = '';
 $tipo_alerta = '';
@@ -133,6 +138,49 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         exit;
     }
 }
+
+
+
+
+
+
+
+
+// Processar formulário de atualização de perfil
+$mensagem = '';
+$tipo_alerta = '';
+
+if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+    // ... outros casos de processamento de formulário ...
+
+    if (isset($_POST['acao']) && $_POST['acao'] === 'tema_escuro') {
+        // Salvar preferência de tema na sessão
+        $_SESSION['tema_escuro'] = isset($_POST['tema_escuro']) ? true : false;
+        $mensagem = 'Preferências de tema atualizadas com sucesso.';
+        $tipo_alerta = 'success';
+        
+        // Redirecionar para a mesma página para aplicar o tema imediatamente
+        header("Location: " . $_SERVER['PHP_SELF'] . (isset($_GET['tab']) ? "?tab=" . $_GET['tab'] : ""));
+        exit;
+    }
+    
+    // ... outros casos de processamento de formulário ...
+}
+
+// Obter informações do usuário
+$info_usuario = $usuario->obterPorId($usuario_id);
+
+// Verificar tema escuro e outras preferências
+verificarTemaEscuro();
+if (!isset($_SESSION['notificacoes_email'])) {
+    $_SESSION['notificacoes_email'] = true;
+}
+if (!isset($_SESSION['notificacoes_diarias'])) {
+    $_SESSION['notificacoes_diarias'] = true;
+}
+
+
+
 
 // Obter informações do usuário
 $info_usuario = $usuario->obterPorId($usuario_id);
