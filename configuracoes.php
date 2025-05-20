@@ -237,9 +237,7 @@ $titulo = "Configurações";
                     <a class="list-group-item list-group-item-action active" data-bs-toggle="list" href="#perfil">
                         <i class="bi bi-person-fill me-2"></i>Perfil
                     </a>
-                    <a class="list-group-item list-group-item-action" data-bs-toggle="list" href="#aparencia">
-                        <i class="bi bi-palette-fill me-2"></i>Aparência
-                    </a>
+                
                     <a class="list-group-item list-group-item-action" data-bs-toggle="list" href="#notificacoes">
                         <i class="bi bi-bell-fill me-2"></i>Notificações
                     </a>
