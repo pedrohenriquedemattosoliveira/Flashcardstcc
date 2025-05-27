@@ -56,7 +56,7 @@
                 <ul class="navbar-nav me-auto">
                     <li class="nav-item">
                         <a class="nav-link" href="dashboard.php">
-                            <i class="fas fa-tachometer-alt me-1"></i>Dashboard
+                            <i class="fas fa-tachometer-alt me-1"></i>dashboard
                         </a>
                     </li>
                     <li class="nav-item">
