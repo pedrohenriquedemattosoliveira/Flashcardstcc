@@ -1,11 +1,8 @@
 <?php
-// Importar arquivo de configuração e classes
 require_once 'config.php';
 
-// Verificar se o usuário está logado
 $usuario_id = verificarLogin();
 
-// Inicializar sistema
 $sistema = inicializarSistema();
 $usuario = $sistema['usuario'];
 
@@ -14,7 +11,6 @@ $usuario = $sistema['usuario'];
 
 
 
-// Processar formulário de atualização de perfil
 $mensagem = '';
 $tipo_alerta = '';
 
@@ -26,7 +22,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $nova_senha = $_POST['nova_senha'];
         $confirmar_senha = $_POST['confirmar_senha'];
         
-        // Validações básicas
         if (empty($nome) || empty($email)) {
             $mensagem = 'Nome e e-mail são obrigatórios.';
             $tipo_alerta = 'danger';
@@ -37,14 +32,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $mensagem = 'As senhas não conferem.';
             $tipo_alerta = 'danger';
         } else {
-            // Verificar se o e-mail já está sendo usado por outro usuário
             $stmt = $sistema['usuario']->db->prepare("SELECT id FROM usuarios WHERE email = ? AND id != ?");
             $stmt->execute([$email, $usuario_id]);
             if ($stmt->fetch()) {
                 $mensagem = 'Este e-mail já está sendo usado por outro usuário.';
                 $tipo_alerta = 'danger';
             } else {
-                // Verificar senha atual se estiver alterando a senha
                 if (!empty($nova_senha)) {
                     // Buscar a senha atual do usuário
                     $stmt = $sistema['usuario']->db->prepare("SELECT senha FROM usuarios WHERE id = ?");
