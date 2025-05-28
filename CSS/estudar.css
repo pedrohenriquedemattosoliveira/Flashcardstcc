@@ -1,0 +1,105 @@
+ .study-card {
+            min-height: 300px;
+            perspective: 1000px;
+            margin-bottom: 20px;
+        }
+        .flashcard {
+            width: 100%;
+            height: 100%;
+            position: relative;
+            transition: transform 0.6s;
+            transform-style: preserve-3d;
+            cursor: pointer;
+        }
+        .flashcard.flipped {
+            transform: rotateY(180deg);
+        }
+        .card-front, .card-back {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            backface-visibility: hidden;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+            overflow-y: auto;
+        }
+        .card-front {
+            background-color: #f8f9fa;
+            border-left: 5px solid #007bff;
+            z-index: 2;
+        }
+        .card-back {
+            background-color: #e9ecef;
+            border-left: 5px solid #28a745;
+            transform: rotateY(180deg);
+        }
+        .card-content {
+            font-size: 1.25rem;
+            text-align: center;
+            width: 100%;
+        }
+        .progress-container {
+            margin-bottom: 20px;
+        }
+        .difficulty-buttons {
+            margin-top: 20px;
+            display: none;
+        }
+        .difficulty-buttons.visible {
+            display: block;
+        }
+        .tag-badge {
+            margin-right: 5px;
+            font-size: 0.8rem;
+        }
+        .card-tags {
+            position: absolute;
+            bottom: 10px;
+            left: 20px;
+            z-index: 3;
+        }
+        .card-info {
+            position: absolute;
+            top: 10px;
+            right: 20px;
+            font-size: 0.8rem;
+            color: #6c757d;
+        }
+        .btn-difficulty-0 { background-color: #dc3545; }
+        .btn-difficulty-1 { background-color: #fd7e14; }
+        .btn-difficulty-2 { background-color: #ffc107; }
+        .btn-difficulty-3 { background-color: #20c997; }
+        .btn-difficulty-4 { background-color: #0dcaf0; }
+        .btn-difficulty-5 { background-color: #198754; }
+        
+        /* Estilos para a animação de feedback */
+        .feedback-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0,0,0,0.4);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 9999;
+            opacity: 0;
+            visibility: hidden;
+            transition: opacity 0.3s, visibility 0.3s;
+        }
+        .feedback-overlay.show {
+            opacity: 1;
+            visibility: visible;
+        }
+        .feedback-message {
+            background-color: white;
+            padding: 20px 40px;
+            border-radius: 8px;
+            font-size: 1.5rem;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+        }

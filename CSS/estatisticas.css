@@ -1,0 +1,19 @@
+ .stats-card {
+            transition: transform 0.3s;
+        }
+        .stats-card:hover {
+            transform: scale(1.05);
+        }
+        .chart-container {
+            position: relative;
+            height: 300px;
+            margin-bottom: 20px;
+        }
+        .progress-label {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            font-size: 16px;
+            font-weight: bold;
+        }

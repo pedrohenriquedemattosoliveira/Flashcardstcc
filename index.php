@@ -26,7 +26,7 @@ foreach ($baralhos as $baralho) {
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Sistema de Flashcards - <?php echo $titulo; ?></title>
+    <title>Corvus Cards - <?php echo $titulo; ?></title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css" rel="stylesheet">
 
@@ -37,27 +37,8 @@ foreach ($baralhos as $baralho) {
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
     <!-- Font Awesome -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
-    <style>
-        .card-deck {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 15px;
-        }
-        .deck-card {
-            width: 100%;
-            max-width: 300px;
-            transition: transform 0.3s;
-        }
-        .deck-card:hover {
-            transform: scale(1.03);
-        }
-        .stats-card {
-            transition: transform 0.3s;
-        }
-        .stats-card:hover {
-            transform: scale(1.05);
-        }
-    </style>
+    <link rel="stylesheet" href="CSS/index.css">
+
 </head>
 <body>
     <!-- Barra de navegação -->

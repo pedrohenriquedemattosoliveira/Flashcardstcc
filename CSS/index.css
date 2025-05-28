@@ -1,0 +1,19 @@
+        .card-deck {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 15px;
+        }
+        .deck-card {
+            width: 100%;
+            max-width: 300px;
+            transition: transform 0.3s;
+        }
+        .deck-card:hover {
+            transform: scale(1.03);
+        }
+        .stats-card {
+            transition: transform 0.3s;
+        }
+        .stats-card:hover {
+            transform: scale(1.05);
+        }

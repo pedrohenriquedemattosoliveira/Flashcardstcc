@@ -90,61 +90,8 @@ $cartoes_para_revisar = $sistema['cartao']->contarParaRevisar($baralho_id);
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
     <!-- Font Awesome -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
-    <style>
-        .card-container {
-            perspective: 1000px;
-            margin-bottom: 20px;
-            height: 200px;
-        }
-        .flashcard {
-            width: 100%;
-            height: 100%;
-            position: relative;
-            transition: transform 0.6s;
-            transform-style: preserve-3d;
-            cursor: pointer;
-        }
-        .flashcard.flipped {
-            transform: rotateY(180deg);
-        }
-        .card-front, .card-back {
-            position: absolute;
-            width: 100%;
-            height: 100%;
-            backface-visibility: hidden;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            padding: 15px;
-            border-radius: 5px;
-            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
-            overflow-y: auto;
-        }
-        .card-front {
-            background-color: #f8f9fa;
-            z-index: 2;
-        }
-        .card-back {
-            background-color: #e9ecef;
-            transform: rotateY(180deg);
-        }
-        .card-actions {
-            position: absolute;
-            top: 5px;
-            right: 5px;
-            z-index: 3;
-        }
-        .tag-badge {
-            margin-right: 5px;
-            font-size: 0.8rem;
-        }
-        .card-tags {
-            position: absolute;
-            bottom: 5px;
-            left: 5px;
-            z-index: 3;
-        }
-    </style>
+    <link rel="stylesheet" href= CSS/baralho.css>
+  
 </head>
 <body>
     <nav class="navbar navbar-expand-lg navbar-dark bg-primary">
