@@ -249,12 +249,12 @@ $recorde_tempo_dia = round(($recorde_revisoes_dia * 30) / 60);
             
             <!-- Gráfico de status dos cartões -->
             <div class="col-md-4 mb-3">
-                <div class="card">
+                <div class="card h-100">
                     <div class="card-header bg-light">
                         <h5 class="mb-0">Status dos Cartões</h5>
                     </div>
-                    <div class="card-body">
-                        <div class="chart-container">
+                    <div class="card-body d-flex flex-column">
+                        <div class="chart-container mb-3" style="position: relative; height: 250px;">
                             <?php if ($total_cartoes == 0): ?>
                                 <div class="alert alert-info">
                                     Não há cartões cadastrados ainda.
@@ -262,27 +262,38 @@ $recorde_tempo_dia = round(($recorde_revisoes_dia * 30) / 60);
                             <?php else: ?>
                                 <canvas id="statusCartoesChart"></canvas>
                             <?php endif; ?>
-                            <div class="mt-3">
-                                <ul class="list-group">
-                                    <li class="list-group-item d-flex justify-content-between align-items-center">
-                                        Novos
-                                        <span class="badge bg-primary rounded-pill"><?php echo $cartoes_novos; ?></span>
-                                    </li>
-                                    <li class="list-group-item d-flex justify-content-between align-items-center">
-                                        Aprendendo
-                                        <span class="badge bg-warning rounded-pill"><?php echo $cartoes_aprendendo; ?></span>
-                                    </li>
-                                    <li class="list-group-item d-flex justify-content-between align-items-center">
-                                        Dominados
-                                        <span class="badge bg-success rounded-pill"><?php echo $cartoes_dominados; ?></span>
-                                    </li>
-                                </ul>
-                            </div>
                         </div>
+                        
+                        <?php if ($total_cartoes > 0): ?>
+                        <div class="mt-auto">
+                            <ul class="list-group list-group-flush">
+                                <li class="list-group-item d-flex justify-content-between align-items-center px-0">
+                                    <div class="d-flex align-items-center">
+                                        <span class="badge bg-primary me-2" style="width: 15px; height: 15px;"></span>
+                                        Novos
+                                    </div>
+                                    <span class="badge bg-primary rounded-pill"><?php echo $cartoes_novos; ?></span>
+                                </li>
+                                <li class="list-group-item d-flex justify-content-between align-items-center px-0">
+                                    <div class="d-flex align-items-center">
+                                        <span class="badge bg-warning me-2" style="width: 15px; height: 15px;"></span>
+                                        Aprendendo
+                                    </div>
+                                    <span class="badge bg-warning rounded-pill"><?php echo $cartoes_aprendendo; ?></span>
+                                </li>
+                                <li class="list-group-item d-flex justify-content-between align-items-center px-0 border-bottom-0">
+                                    <div class="d-flex align-items-center">
+                                        <span class="badge bg-success me-2" style="width: 15px; height: 15px;"></span>
+                                        Dominados
+                                    </div>
+                                    <span class="badge bg-success rounded-pill"><?php echo $cartoes_dominados; ?></span>
+                                </li>
+                            </ul>
+                        </div>
+                        <?php endif; ?>
                     </div>
                 </div>
             </div>
-        </div>
 
         <!-- Tabela de desempenho por baralho -->
         <div class="row mb-4">
