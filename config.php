@@ -29,8 +29,6 @@ class Database {
     }
 }
 
-
-
 // Classe para gerenciar usuários
 class Usuario {
     private $db;
@@ -182,6 +180,44 @@ class Baralho {
             return ['sucesso' => true, 'mensagem' => 'Baralho excluído com sucesso'];
         } catch (PDOException $e) {
             return ['sucesso' => false, 'mensagem' => 'Erro ao excluir baralho: ' . $e->getMessage()];
+        }
+    }
+    
+    // MÉTODO REMOVER ADICIONADO - funciona igual ao excluir mas com nome que a tela espera
+    public function remover($id) {
+        try {
+            // Inicia transação para garantir integridade
+            $this->db->beginTransaction();
+            
+            // Remove primeiro as estatísticas dos cartões do baralho
+            $stmt = $this->db->prepare("
+                DELETE e FROM estatisticas e 
+                JOIN cartoes c ON e.cartao_id = c.id 
+                WHERE c.baralho_id = ?
+            ");
+            $stmt->execute([$id]);
+            
+            // Remove as associações cartão-tag
+            $stmt = $this->db->prepare("
+                DELETE ct FROM cartoes_tags ct 
+                JOIN cartoes c ON ct.cartao_id = c.id 
+                WHERE c.baralho_id = ?
+            ");
+            $stmt->execute([$id]);
+            
+            // Remove os cartões do baralho
+            $stmt = $this->db->prepare("DELETE FROM cartoes WHERE baralho_id = ?");
+            $stmt->execute([$id]);
+            
+            // Remove o baralho
+            $stmt = $this->db->prepare("DELETE FROM baralhos WHERE id = ?");
+            $stmt->execute([$id]);
+            
+            $this->db->commit();
+            return ['sucesso' => true, 'mensagem' => 'Baralho removido com sucesso'];
+        } catch (PDOException $e) {
+            $this->db->rollBack();
+            return ['sucesso' => false, 'mensagem' => 'Erro ao remover baralho: ' . $e->getMessage()];
         }
     }
     
@@ -470,25 +506,24 @@ class Tag {
         }
     }
     
-   
-public function listar($usuario_id) {
-    try {
-        $stmt = $this->db->prepare("
-            SELECT b.*, 
-                (SELECT COUNT(*) FROM cartoes WHERE baralho_id = b.id) AS total_cartoes,
-                (SELECT COUNT(*) FROM cartoes c 
-                 JOIN estatisticas e ON c.id = e.cartao_id 
-                 WHERE c.baralho_id = b.id) AS cartoes_para_revisar
-            FROM baralhos b 
-            WHERE b.usuario_id = ? 
-            ORDER BY b.data_criacao DESC
-        ");
-        $stmt->execute([$usuario_id]);
-        return $stmt->fetchAll(PDO::FETCH_ASSOC);
-    } catch (PDOException $e) {
-        return [];
+    public function listar($usuario_id) {
+        try {
+            $stmt = $this->db->prepare("
+                SELECT b.*, 
+                    (SELECT COUNT(*) FROM cartoes WHERE baralho_id = b.id) AS total_cartoes,
+                    (SELECT COUNT(*) FROM cartoes c 
+                     JOIN estatisticas e ON c.id = e.cartao_id 
+                     WHERE c.baralho_id = b.id) AS cartoes_para_revisar
+                FROM baralhos b 
+                WHERE b.usuario_id = ? 
+                ORDER BY b.data_criacao DESC
+            ");
+            $stmt->execute([$usuario_id]);
+            return $stmt->fetchAll(PDO::FETCH_ASSOC);
+        } catch (PDOException $e) {
+            return [];
+        }
     }
-}
     
     public function listarPorCartao($cartao_id) {
         try {
@@ -549,8 +584,7 @@ function inicializarSistema() {
     ];
 }
 
-// Adicione esta função ao final do arquivo config.php
-
+// Função para verificar tema escuro
 function verificarTemaEscuro() {
     if (session_status() === PHP_SESSION_NONE) {
         session_start();
@@ -570,6 +604,5 @@ function obterAtributoTemaEscuro() {
     $tema_escuro = verificarTemaEscuro();
     return $tema_escuro ? 'data-bs-theme="dark"' : '';
 }
-
 
 ?>
