@@ -39,7 +39,7 @@ $usuario = $sistema['usuario']->obterPorId($usuario_id);
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Novo Baralho - Sistema de Flashcards</title>
+    <title>Novo Baralho - CorvusCards</title>
     <!-- Bootstrap CSS -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <!-- Font Awesome para ícones -->
@@ -51,7 +51,7 @@ $usuario = $sistema['usuario']->obterPorId($usuario_id);
     <nav class="navbar navbar-expand-lg navbar-dark bg-primary">
         <div class="container">
             <a class="navbar-brand" href="index.php">
-                <i class="fas fa-layer-group me-2"></i>Sistema de Flashcards
+                <i class="fas fa-layer-group me-2"></i>CorvusCards
             </a>
             <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
                 <span class="navbar-toggler-icon"></span>
@@ -139,7 +139,7 @@ $usuario = $sistema['usuario']->obterPorId($usuario_id);
     <!-- Rodapé -->
     <footer class="bg-dark text-white text-center py-3 mt-5">
         <div class="container">
-            <p class="mb-0">&copy; <?php echo date('Y'); ?> Sistema de Flashcards - Todos os direitos reservados</p>
+            <p class="mb-0">&copy; <?php echo date('Y'); ?> CorvusCards - Todos os direitos reservados</p>
         </div>
     </footer>
     

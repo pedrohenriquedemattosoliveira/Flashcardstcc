@@ -124,20 +124,20 @@ include 'includes/header.php';
         <div class="col-12">
             <div class="card bg-primary text-white">
                 <div class="card-body">
-                    <h1 class="card-title h2 mb-2">Olá, <?php echo htmlspecialchars($usuario['nome']); ?>! 👋</h1>
-                    <p class="card-text mb-3">Bem-vindo ao seu dashboard de estudos. Aqui você pode acompanhar seu progresso e continuar seus estudos.</p>
-                    
-                    <?php if ($cartoes_para_revisar > 0): ?>
-                        <div class="alert alert-warning mb-0" role="alert">
-                            <strong>📚 Você tem <?php echo $cartoes_para_revisar; ?> cartão(ões) para revisar hoje!</strong>
-                            <a href="estudar.php" class="btn btn-warning btn-sm ms-2">Estudar Agora</a>
-                        </div>
-                    <?php else: ?>
-                        <div class="alert alert-success mb-0" role="alert">
-                            <strong>🎉 Parabéns! Você está em dia com suas revisões!</strong>
-                        </div>
-                    <?php endif; ?>
-                </div>
+    <h1 class="card-title h2 mb-2">Olá, <?php echo htmlspecialchars($usuario['nome']); ?>! 👋</h1>
+    <p class="card-text mb-3">Bem-vindo ao seu dashboard de estudos. Aqui você pode acompanhar seu progresso e continuar seus estudos.</p>
+    
+    <?php if ($cartoes_para_revisar > 0): ?>
+        <div class="alert alert-warning mb-0" role="alert">
+            <strong>📚 Você tem <?php echo $cartoes_para_revisar; ?> cartão(ões) para revisar hoje!</strong>
+            <a href="estudar.php" class="btn btn-warning btn-sm ms-2">Estudar Agora</a>
+        </div>
+    <?php else: ?>
+        <div class="alert alert-success mb-0" role="alert">
+            <strong>🎉 Parabéns! Você está em dia com suas revisões!</strong>
+        </div>
+    <?php endif; ?>
+</div>
             </div>
         </div>
     </div>
