@@ -47,7 +47,7 @@ $usuario = $sistema['usuario']->obterPorId($usuario_id);
     <link rel="stylesheet" href="css/estilo.css">
     <style>
         body {
-            padding-bottom: 65px; /* space for the fixed footer */
+            padding-bottom: 65px; 
         }
         footer {
             position: fixed;
