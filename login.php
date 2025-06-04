@@ -40,7 +40,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             <div class="col-md-6 col-lg-5">
                 <div class="card shadow">
                     <div class="card-header bg-primary text-white text-center">
-                        <h4>CorvusCards</h4>
+                        <img src="Imagens/logo.png" width="50px" height="50px"><h4>CorvusCards</h4>
                     </div>
                     <div class="card-body">
                         <?php echo $mensagem; ?>
