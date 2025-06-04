@@ -45,18 +45,6 @@ $usuario = $sistema['usuario']->obterPorId($usuario_id);
     <!-- Font Awesome para ícones -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <link rel="stylesheet" href="css/estilo.css">
-    <style>
-        body {
-            padding-bottom: 65px; 
-        }
-        footer {
-            position: fixed;
-            bottom: 0;
-            width: 100%;
-            height: 60px;
-            z-index: 1030;
-        }
-    </style>
 </head>
 <body class="bg-light">
     <!-- Navbar -->
