@@ -6,6 +6,8 @@
 -- Tempo de geração: 04/04/2025 às 02:47
 -- Versão do servidor: 10.4.32-MariaDB
 -- Versão do PHP: 8.0.30
+CREATE DATABASE `sistema_flashcards`;
+USE `sistema_flashcards`;
 
 SET SQL_MODE = "NO_AUTO_VALUE_ON_ZERO";
 START TRANSACTION;

@@ -2,10 +2,10 @@
 // Verificar a página atual para destacar o item de menu correspondente
 $current_page = basename($_SERVER['PHP_SELF']);
 ?>
-<nav class="navbar navbar-expand-lg navbar-dark bg-dark">
+<nav class="navbar navbar-expand-lg navbar-dark bg-primary">
     <div class="container">
         <a class="navbar-brand" href="index.php">
-            <i class="fas fa-brain"></i> CorvusCards
+            <img src="Imagens/logo.png" width="50px" height="50px"> CorvusCards
         </a>
         <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
             <span class="navbar-toggler-icon"></span>

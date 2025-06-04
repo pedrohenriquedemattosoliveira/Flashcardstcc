@@ -133,7 +133,7 @@ foreach ($baralhos as $b) {
 <body>
     <nav class="navbar navbar-expand-lg navbar-dark bg-primary">
         <div class="container">
-            <a class="navbar-brand" href="index.php">CorvusCards</a>
+            <a class="navbar-brand" href="index.php"><img src = "Imagens/logo.png" width = "50px" height = "50px">CorvusCards</a>
             <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
                 <span class="navbar-toggler-icon"></span>
             </button>
