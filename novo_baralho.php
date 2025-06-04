@@ -45,6 +45,18 @@ $usuario = $sistema['usuario']->obterPorId($usuario_id);
     <!-- Font Awesome para ícones -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <link rel="stylesheet" href="css/estilo.css">
+    <style>
+        body {
+            padding-bottom: 65px; /* space for the fixed footer */
+        }
+        footer {
+            position: fixed;
+            bottom: 0;
+            width: 100%;
+            height: 60px;
+            z-index: 1030;
+        }
+    </style>
 </head>
 <body class="bg-light">
     <!-- Navbar -->
@@ -137,7 +149,7 @@ $usuario = $sistema['usuario']->obterPorId($usuario_id);
     </div>
 
     <!-- Rodapé -->
-    <footer class="bg-dark text-white text-center py-3 mt-5">
+    <footer class="bg-primary text-white text-center py-3 mt-5">
         <div class="container">
             <p class="mb-0">&copy; <?php echo date('Y'); ?> CorvusCards - Todos os direitos reservados</p>
         </div>
